@@ -20,3 +20,8 @@ class AddWorkoutStates(StatesGroup):
     input_calories = State()
     input_description = State()
     done_add_workout = State()
+
+
+class ViewWorkouts(StatesGroup):
+    input_type = State()
+    input_period = State()

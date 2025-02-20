@@ -2,7 +2,7 @@ from aiogram import Router, F, types
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 
-from resources.states import AddWorkoutStates
+from resources.states import AddWorkoutStates, ViewWorkouts
 from src.keyboards.workout_keyboards import *
 
 from src.model.workout_model import Workout
@@ -190,3 +190,91 @@ async def clear_workout_handler(callback: types.CallbackQuery, state: FSMContext
 
     await state.clear()
     await callback.answer()
+
+
+@router.message(StateFilter(None), Command("view_workouts"))
+async def view_workouts_handler(message: types.Message, state: FSMContext):
+    reply_message = await message.answer("Введите тип тренировок", reply_markup=skip_keyboard())
+
+    await state.update_data(reply_message=reply_message)
+    await state.set_state(ViewWorkouts.input_type)
+
+
+@router.message(StateFilter(ViewWorkouts.input_type), F.text)
+async def view_type_activity_handler(message: types.Message, state: FSMContext):
+    type_activity = message.text
+
+    reply_message = (await state.get_data()).get("reply_message")
+    await reply_message.delete_reply_markup()
+
+    await state.update_data(type_activity=type_activity)
+
+    reply_message = await message.answer("Введите кол-во дней, за которые вы хотите посмотреть тренировки",
+                                         reply_markup=skip_keyboard())
+    await state.update_data(reply_message=reply_message)
+
+    await state.set_state(ViewWorkouts.input_period)
+
+
+@router.callback_query(StateFilter(ViewWorkouts.input_type), F.data == "skip")
+async def skip_view_type_activity_handler(callback: types.CallbackQuery, state: FSMContext):
+    message = callback.message
+
+    reply_message = (await state.get_data()).get("reply_message")
+    await reply_message.delete_reply_markup()
+
+    reply_message = await message.answer("Введите кол-во дней, за которые вы хотите посмотреть тренировки",
+                                         reply_markup=skip_keyboard())
+    await state.update_data(reply_message=reply_message)
+
+    await state.set_state(ViewWorkouts.input_period)
+    await callback.answer()
+
+
+@router.message(StateFilter(ViewWorkouts.input_period), F.text)
+async def view_period_activity_handler(message: types.Message, state: FSMContext):
+    period = message.text
+    try:
+        period = int(period)
+    except ValueError:
+        await message.answer("Нужно ввести только число дней. Попробуйте снова")
+        return
+
+    reply_message = (await state.get_data()).get("reply_message")
+    await reply_message.delete_reply_markup()
+
+    await state.update_data(period=period)
+    await view_workouts(message, state)
+
+
+@router.callback_query(StateFilter(ViewWorkouts.input_period), F.data == "skip")
+async def skip_view_period_activity_handler(callback: types.CallbackQuery, state: FSMContext):
+    reply_message = (await state.get_data()).get("reply_message")
+    await reply_message.delete_reply_markup()
+
+    await view_workouts(callback.message, state)
+    await callback.answer()
+
+
+async def view_workouts(message: types.Message, state: FSMContext):
+    data = await state.get_data()
+
+    type_activity = data.get("type_activity")
+    period = data.get("period")
+
+    if type_activity is not None:
+        workouts = workout_dp.get_all_workouts_by_type(message.chat.id, type_activity)
+        if period is not None:
+            workouts = workout_dp.sort_workouts_by_period_of_time(workouts, period)
+    elif period is not None:
+        workouts = workout_dp.get_all_workouts_by_period_of_time(message.chat.id, period)
+    else:
+        workouts = workout_dp.get_all_workouts_by_user_id(message.chat.id)
+
+    if workouts == []:
+        await message.answer("У вас пока нет тренировок")
+    else:
+        for workout in workouts:
+            await message.answer(str(workout))
+
+    await state.clear()
