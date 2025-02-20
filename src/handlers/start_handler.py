@@ -1,17 +1,17 @@
-import aiogram.filters
 from aiogram import Router, F, types
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 
 from resources.states import RegistrationStates, LoginStates
 from resources import constants
-from src.model import databases
+
+from src.model import user_model
+from src.model.databases import user_dp
+
 from src.keyboards.registry_keyboards import get_yes_or_no_keyboard
 
 
 router = Router()
-
-user_dp = databases.UsersSql()
 
 
 @router.message(StateFilter(None), Command("start"))
@@ -66,7 +66,7 @@ async def save_data_handler(callback: types.CallbackQuery, state: FSMContext):
     message = callback.message
 
     data = await state.get_data()
-    user = databases.User(data["login"], data["password"], message.chat.id)
+    user = user_model.User(data["login"], data["password"], message.chat.id)
     user_dp.add_user(user)
 
     await message.delete_reply_markup()
