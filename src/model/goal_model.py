@@ -89,18 +89,18 @@ class GoalsSql:
             );
         """)
 
-    def add_goal(self, goal: Goal, chat_id: int):
+    def add_goal(self, chat_id: int, goal: Goal):
         self.__cursor.execute("""
         INSERT INTO Goals (user_id, goal_header, type_activity, deadline, target_stat, current_stat, description, is_completed)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """, (chat_id, goal.type_activity, goal.deadline, goal.target_stat,
+        """, (chat_id, goal.goal_header, goal.type_activity, goal.deadline, goal.target_stat,
               goal.current_stat, goal.description, goal.is_completed))
 
         self.__connection.commit()
 
     def get_all_workouts_by_user_id(self, user_id) -> list or None:
         self.__cursor.execute("""
-        SELECT id_sql, goal_header, type_activity, deadline, target_stat, current_stat, description, is_completed FROM Goals 
+        SELECT id, goal_header, type_activity, deadline, target_stat, current_stat, description, is_completed FROM Goals 
         WHERE "user_id" = ?;
         """, (user_id, ))
 
@@ -118,8 +118,13 @@ class GoalsSql:
         goals = []
 
         for (id_sql, goal_header, type_activity, deadline, target_stat, current_stat, description, is_completed) in workout_tuples:
-            goal = Goal(type_activity=type_activity, deadline=deadline, target_stat=target_stat,
-                        current_stat=current_stat, description=description, is_completed=is_completed, id_sql=id_sql)
+            goal = Goal(goal_header=goal_header, type_activity=type_activity,
+                        deadline=datetime.datetime.strptime(deadline, '%Y-%m-%d').date(),
+                        target_stat=int(target_stat), current_stat=int(current_stat), description=description,
+                        is_completed=bool(is_completed), id_sql=id_sql)
             goals.append(goal)
+            print(type(deadline))
+            print(type(target_stat))
+            print(type(is_completed))
 
         return goals

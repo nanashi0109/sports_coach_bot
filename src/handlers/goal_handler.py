@@ -118,11 +118,11 @@ async def done_add_goal(message: types.Message, state: FSMContext):
 async def save_goal_handler(callback: types.CallbackQuery, state: FSMContext):
     message = callback.message
     await message.delete_reply_markup()
-    await message.answer("Цель сохранена")
 
     goal = (await state.get_data()).get("goal")
-
     goals_dp.add_goal(message.chat.id, goal)
+
+    await message.answer("Цель сохранена")
 
     await state.clear()
     await callback.answer()
@@ -132,7 +132,20 @@ async def save_goal_handler(callback: types.CallbackQuery, state: FSMContext):
 async def clear_goal_handler(callback: types.CallbackQuery, state: FSMContext):
     message = callback.message
     await message.delete_reply_markup()
-    await message.answer("Цель отменена")
+    await message.answer("Цель не сохранена")
 
     await state.clear()
     await callback.answer()
+
+
+@router.message(StateFilter(None), Command("view_goals"))
+async def view_goals_handler(message: types.Message, state: FSMContext):
+    goals = goals_dp.get_all_workouts_by_user_id(message.chat.id)
+
+    if goals == []:
+        await message.answer("Нет целей :(")
+        return
+
+    for goal in goals:
+        print(goal.deadline)
+        await message.answer(str(goal))
