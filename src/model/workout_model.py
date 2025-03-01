@@ -69,7 +69,7 @@ class WorkoutsSql:
         self.__cursor.execute("""
             CREATE TABLE IF NOT EXISTS Workouts(
             id              INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id         INTEGER,
+            user_id         INTEGER NOT NULL,
             type_activity   TEXT NOT NULL,
             date_activity   DATETIME NOT NULL,
             duration        TIME,

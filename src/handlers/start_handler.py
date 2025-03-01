@@ -8,7 +8,7 @@ from resources import constants
 from src.model import user_model
 from src.model.databases import user_dp
 
-from src.keyboards.registry_keyboards import get_yes_or_no_keyboard
+from src.keyboards.base_keyboards import get_yes_or_no_keyboard
 
 
 router = Router()

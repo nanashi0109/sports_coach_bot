@@ -22,6 +22,15 @@ class AddWorkoutStates(StatesGroup):
     done_add_workout = State()
 
 
-class ViewWorkouts(StatesGroup):
+class ViewWorkoutsStates(StatesGroup):
     input_type = State()
     input_period = State()
+
+
+class SetGoalStates(StatesGroup):
+    input_type = State()
+    input_header = State()
+    input_stats = State()
+    input_description = State()
+    input_deadline = State()
+    done_add_goal = State()

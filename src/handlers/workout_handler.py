@@ -2,8 +2,9 @@ from aiogram import Router, F, types
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 
-from resources.states import AddWorkoutStates, ViewWorkouts
-from src.keyboards.workout_keyboards import *
+from resources.states import AddWorkoutStates, ViewWorkoutsStates
+from src.keyboards.workout_keyboards import get_type_activities_keyboard
+from src.keyboards.base_keyboards import skip_keyboard, get_yes_or_no_keyboard
 
 from src.model.workout_model import Workout
 from src.model.databases import workout_dp
@@ -127,7 +128,6 @@ async def skip_calories_handler(callback: types.CallbackQuery, state: FSMContext
 
 @router.message(StateFilter(AddWorkoutStates.input_description), F.text)
 async def comment_handler(message: types.Message, state: FSMContext):
-
     reply_message = (await state.get_data()).get("reply_message")
     await reply_message.delete_reply_markup()
 
@@ -197,10 +197,10 @@ async def view_workouts_handler(message: types.Message, state: FSMContext):
     reply_message = await message.answer("Введите тип тренировок", reply_markup=skip_keyboard())
 
     await state.update_data(reply_message=reply_message)
-    await state.set_state(ViewWorkouts.input_type)
+    await state.set_state(ViewWorkoutsStates.input_type)
 
 
-@router.message(StateFilter(ViewWorkouts.input_type), F.text)
+@router.message(StateFilter(ViewWorkoutsStates.input_type), F.text)
 async def view_type_activity_handler(message: types.Message, state: FSMContext):
     type_activity = message.text
 
@@ -213,10 +213,10 @@ async def view_type_activity_handler(message: types.Message, state: FSMContext):
                                          reply_markup=skip_keyboard())
     await state.update_data(reply_message=reply_message)
 
-    await state.set_state(ViewWorkouts.input_period)
+    await state.set_state(ViewWorkoutsStates.input_period)
 
 
-@router.callback_query(StateFilter(ViewWorkouts.input_type), F.data == "skip")
+@router.callback_query(StateFilter(ViewWorkoutsStates.input_type), F.data == "skip")
 async def skip_view_type_activity_handler(callback: types.CallbackQuery, state: FSMContext):
     message = callback.message
 
@@ -227,11 +227,11 @@ async def skip_view_type_activity_handler(callback: types.CallbackQuery, state: 
                                          reply_markup=skip_keyboard())
     await state.update_data(reply_message=reply_message)
 
-    await state.set_state(ViewWorkouts.input_period)
+    await state.set_state(ViewWorkoutsStates.input_period)
     await callback.answer()
 
 
-@router.message(StateFilter(ViewWorkouts.input_period), F.text)
+@router.message(StateFilter(ViewWorkoutsStates.input_period), F.text)
 async def view_period_activity_handler(message: types.Message, state: FSMContext):
     period = message.text
     try:
@@ -247,7 +247,7 @@ async def view_period_activity_handler(message: types.Message, state: FSMContext
     await view_workouts(message, state)
 
 
-@router.callback_query(StateFilter(ViewWorkouts.input_period), F.data == "skip")
+@router.callback_query(StateFilter(ViewWorkoutsStates.input_period), F.data == "skip")
 async def skip_view_period_activity_handler(callback: types.CallbackQuery, state: FSMContext):
     reply_message = (await state.get_data()).get("reply_message")
     await reply_message.delete_reply_markup()
