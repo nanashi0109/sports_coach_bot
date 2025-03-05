@@ -101,7 +101,7 @@ class WorkoutsSql:
         if workout_tuples is None:
             return None
 
-        return self.convert_tuple_into_list_workout(workout_tuples)
+        return self.__convert_tuple_into_list_workout(workout_tuples)
 
     def get_all_workouts_by_period_of_time(self, user_id: int, period) -> list:
         today = datetime.date.today()
@@ -114,7 +114,7 @@ class WorkoutsSql:
 
         workouts_tuples = self.__cursor.fetchall()
 
-        return self.convert_tuple_into_list_workout(workouts_tuples)
+        return self.__convert_tuple_into_list_workout(workouts_tuples)
 
     def get_all_workouts_by_type(self, user_id: int, type_activity) -> list:
         self.__cursor.execute("""
@@ -124,7 +124,7 @@ class WorkoutsSql:
 
         workouts = self.__cursor.fetchall()
 
-        return self.convert_tuple_into_list_workout(workouts)
+        return self.__convert_tuple_into_list_workout(workouts)
 
     def sort_workouts_by_period_of_time(self, workouts, period) -> list:
         today = datetime.date.today()
@@ -147,7 +147,7 @@ class WorkoutsSql:
 
         return result_workouts
 
-    def convert_tuple_into_list_workout(self, workout_tuples) -> list:
+    def __convert_tuple_into_list_workout(self, workout_tuples) -> list:
         workouts = []
 
         for (type_activity, date_activity, duration, distance, calories, description) in workout_tuples:

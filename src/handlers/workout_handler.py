@@ -9,6 +9,7 @@ from src.keyboards.base_keyboards import skip_keyboard, get_yes_or_no_keyboard
 from src.model.workout_model import Workout
 from src.model.databases import workout_dp
 import datetime
+from resources.constants import TYPES_ACTIVITIES
 
 router = Router()
 
@@ -24,14 +25,13 @@ async def add_workout_handler(message: types.Message, state: FSMContext):
 async def type_activity_handler(message: types.Message, state: FSMContext):
     await state.update_data(type_activity=message.text)
 
-    if message.text in ["Бег", "Ходьба", "Плавание"]:
+    if message.text in TYPES_ACTIVITIES:
         reply_message = await message.answer("Введите дистанцию (в км)", reply_markup=skip_keyboard())
 
         await state.update_data(reply_message=reply_message)
         await state.set_state(AddWorkoutStates.input_distance)
     else:
-        await state.set_state(AddWorkoutStates.input_date)
-        await message.answer("Введите дату тренировки (ГГГГ:ММ:ДД:ЧЧ:ММ)")
+        await message.answer("Выберете из тренировку из списка")
 
 
 @router.message(StateFilter(AddWorkoutStates.input_distance), F.text)

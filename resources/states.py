@@ -34,3 +34,9 @@ class SetGoalStates(StatesGroup):
     input_description = State()
     input_deadline = State()
     done_add_goal = State()
+
+
+class StatisticStates(StatesGroup):
+    input_type_activity = State()
+    input_period = State()
+    done_statistic = State()

@@ -112,7 +112,9 @@ class GoalsSql:
         return self.convert_tuple_into_list_goals(goals_tuples)
 
     def remove_goal(self, goal):
-        self.__cursor.execute("""DELETE from Goals where id = ?""", (goal.id_sql, ))
+        self.__cursor.execute("""DELETE FROM Goals WHERE id = ?""", (goal.id_sql, ))
+
+        self.__connection.commit()
 
     def convert_tuple_into_list_goals(self, workout_tuples) -> list:
         goals = []
