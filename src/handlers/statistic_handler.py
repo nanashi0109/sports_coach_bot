@@ -21,12 +21,13 @@ async def get_statistic_handler(message: types.Message, state: FSMContext):
 
 @router.message(StateFilter(StatisticStates.input_type_activity), F.text)
 async def type_activity_handler(message: types.Message, state: FSMContext):
-    if message.text not in TYPES_ACTIVITIES:
-        await message.answer("Выберете тренировку из списка")
-        return
-
+    print(message.text.lower())
     if message.text.lower() != "пропустить":
         await state.update_data(type_activity=message.text)
+
+    if (message.text not in TYPES_ACTIVITIES) and (message.text.lower() != "пропустить"):
+        await message.answer("Выберете тренировку из списка")
+        return
 
     reply_message = await message.answer("Введите период времени, за который хотите просмотреть статистику",
                                          reply_markup=skip_keyboard())
@@ -75,8 +76,8 @@ async def view_statistic(message: types.Message, state: FSMContext):
     await message.answer(f"Суммарная дистанция: {Statistics.get_summary_distance(user_id, type_activity, period)}\n"
                          f"Средняя дистанция: {Statistics.get_avg_distance(user_id, type_activity, period)}")
 
-    await message.answer(f"Суммарная продолжительность тренировки: {Statistics.get_summary_duration_training(user_id, type_activity, period)}\n"
-                         f"Средняя продолжительность тренировки: {Statistics.get_avg_duration_training(user_id, type_activity, period)}")
+    await message.answer(f"Суммарная продолжительность тренировок: {Statistics.get_summary_duration_training(user_id, type_activity, period)}\n"
+                         f"Средняя продолжительность тренировок: {Statistics.get_avg_duration_training(user_id, type_activity, period)}")
 
     await message.answer(f"Суммарная потеря калорий: {Statistics.get_summary_calories_training(user_id, type_activity, period)}\n"
                          f"Средняя потеря калорий: {Statistics.get_avg_calories(user_id, type_activity, period)}")

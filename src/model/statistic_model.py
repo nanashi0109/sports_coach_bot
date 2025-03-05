@@ -1,5 +1,5 @@
 from src.model.databases import workout_dp
-
+import datetime
 
 class Statistics:
 
@@ -30,7 +30,15 @@ class Statistics:
 
         workouts = list(filter(lambda workout: workout.distance is not None, workouts))
 
-        return sum([workout.duration for workout in workouts])
+        durations = [workout.duration for workout in workouts]
+
+        summary_time = datetime.timedelta()
+        for i in durations:
+            (h, m, s) = i.split(':')
+            d = datetime.timedelta(hours=int(h), minutes=int(m), seconds=int(s))
+            summary_time += d
+
+        return str(summary_time)
 
     @staticmethod
     def get_avg_duration_training(user_id, type_activity=None, count_days=None):
@@ -41,9 +49,16 @@ class Statistics:
         if len(workouts) == 0:
             return 0
 
-        avg_duration = sum([workout.duration for workout in workouts]) / len(workouts)
+        durations = [workout.duration for workout in workouts]
 
-        return avg_duration
+        summary_time = datetime.timedelta()
+        for i in durations:
+            (h, m, s) = i.split(':')
+            d = datetime.timedelta(hours=int(h), minutes=int(m), seconds=int(s))
+            summary_time += d
+
+        # TODO: remake to avg
+        return str(summary_time)
 
     @staticmethod
     def get_summary_calories_training(user_id, type_activity=None, count_days=None):
