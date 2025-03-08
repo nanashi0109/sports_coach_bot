@@ -54,8 +54,7 @@ class Statistics:
         for time in durations:
             summary_time += datetime.timedelta(hours=time.hour, minutes=time.minute, seconds=time.second)
 
-        # TODO: remake to avg
-        return str(summary_time)
+        return str(summary_time / len(workouts))
 
     @staticmethod
     def get_summary_calories_training(user_id, type_activity=None, count_days=None):
