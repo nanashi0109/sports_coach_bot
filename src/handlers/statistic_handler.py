@@ -71,15 +71,22 @@ async def view_statistic(message: types.Message, state: FSMContext):
     type_activity = data.get("type_activity")
     period = data.get("period")
 
-    await message.answer(f"Всего тренировок: {Statistics.get_count_training(user_id, type_activity, period)}")
+    await message.answer(f"Всего тренировок: "
+                         f"{Statistics.get_count_training(user_id, type_activity, period)}")
 
-    await message.answer(f"Суммарная дистанция: {Statistics.get_summary_distance(user_id, type_activity, period)}\n"
-                         f"Средняя дистанция: {Statistics.get_avg_distance(user_id, type_activity, period)}")
+    await message.answer(f"Суммарная дистанция: "
+                         f"{Statistics.get_summary_distance(user_id, type_activity, period)}\n"
+                         f"Средняя дистанция: "
+                         f"{Statistics.get_avg_distance(user_id, type_activity, period)}")
 
-    await message.answer(f"Суммарная продолжительность тренировок: {Statistics.get_summary_duration_training(user_id, type_activity, period)}\n"
-                         f"Средняя продолжительность тренировок: {Statistics.get_avg_duration_training(user_id, type_activity, period)}")
+    await message.answer(f"Суммарная продолжительность тренировок: "
+                         f"{Statistics.get_summary_duration_training(user_id, type_activity, period)}\n"
+                         f"Средняя продолжительность тренировок: "
+                         f"{Statistics.get_avg_duration_training(user_id, type_activity, period)}")
 
-    await message.answer(f"Суммарная потеря калорий: {Statistics.get_summary_calories_training(user_id, type_activity, period)}\n"
-                         f"Средняя потеря калорий: {Statistics.get_avg_calories(user_id, type_activity, period)}")
+    await message.answer(f"Суммарная потеря калорий: "
+                         f"{Statistics.get_summary_calories_training(user_id, type_activity, period)}\n"
+                         f"Средняя потеря калорий: "
+                         f"{Statistics.get_avg_calories(user_id, type_activity, period)}")
 
     await state.clear()

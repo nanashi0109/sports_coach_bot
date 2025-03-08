@@ -17,7 +17,7 @@ router = Router()
 
 @router.message(StateFilter(None), Command("set_goal"))
 async def set_goal_handler(message: types.Message, state: FSMContext):
-    message_keyboard = await message.answer("Введите тип тренировки", reply_markup=get_type_activities_keyboard())
+    message_keyboard = await message.answer("Выберете тип тренировки", reply_markup=get_type_activities_keyboard())
 
     await state.update_data(message_keyboard=message_keyboard)
     await state.set_state(SetGoalStates.input_type)
@@ -142,7 +142,7 @@ async def clear_goal_handler(callback: types.CallbackQuery, state: FSMContext):
 async def view_goals_handler(message: types.Message, state: FSMContext):
     goals = goals_dp.get_all_workouts_by_user_id(message.chat.id)
 
-    if goals == []:
+    if len(goals) == 0:
         await message.answer("Нет целей :(")
         return
 

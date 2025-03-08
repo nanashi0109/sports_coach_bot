@@ -2,6 +2,9 @@ import asyncio
 from aiogram import Bot, Dispatcher
 from resources.config import TOKEN
 from handlers import start_handler, workout_handler, goal_handler, statistic_handler
+from src.model import time_waiter
+
+waiter = time_waiter.Waiter()
 
 
 async def main():
@@ -14,3 +17,4 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+    asyncio.run(waiter.wait())

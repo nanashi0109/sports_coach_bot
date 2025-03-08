@@ -22,10 +22,12 @@ class Goal:
         self.__id_sql = id_sql
 
     def __str__(self):
+        value = self.__current_stat if self.__target_stat >= self.__current_stat else self.__current_stat
+
         result = (f"Тип тренировки: {self.__type_activity}\n"
                   f"Цель: {self.__goal_header}\n"
                   f"Дней осталось: {(self.__deadline - datetime.date.today()).days}\n"
-                  f"Прогресс: {self.__current_stat}/{self.__target_stat}\n")
+                  f"Прогресс: {value}/{self.target_stat}\n")
 
         if self.__is_completed:
             result = "--Выполнено--" + result
@@ -130,3 +132,11 @@ class GoalsSql:
             print(type(is_completed))
 
         return goals
+
+    def update_goal_states(self, type_activity: str, value: float):
+        self.__cursor.execute("UPDATE Goals SET current_stat = current_stat + ? WHERE type_activity = ?;",
+                              (value, type_activity))
+
+        self.__cursor.execute("""UPDATE Goals SET is_completed = True WHERE current_stat >= target_stat;""")
+
+        self.__connection.commit()

@@ -7,16 +7,19 @@ from src.keyboards.workout_keyboards import get_type_activities_keyboard
 from src.keyboards.base_keyboards import skip_keyboard, get_yes_or_no_keyboard
 
 from src.model.workout_model import Workout
-from src.model.databases import workout_dp
-import datetime
+from src.model.databases import workout_dp, goals_dp
 from resources.constants import TYPES_ACTIVITIES
+
+from src.bot import waiter
+
+import datetime
 
 router = Router()
 
 
 @router.message(StateFilter(None), Command("add_workout"))
 async def add_workout_handler(message: types.Message, state: FSMContext):
-    await message.answer("Выберете тип активности или введите свой", reply_markup=get_type_activities_keyboard())
+    await message.answer("Выберете тип активности", reply_markup=get_type_activities_keyboard())
 
     await state.set_state(AddWorkoutStates.input_type)
 
@@ -26,7 +29,7 @@ async def type_activity_handler(message: types.Message, state: FSMContext):
     await state.update_data(type_activity=message.text)
 
     if message.text in TYPES_ACTIVITIES:
-        reply_message = await message.answer("Введите дистанцию (в км)", reply_markup=skip_keyboard())
+        reply_message = await message.answer("Введите дистанцию (в км)")
 
         await state.update_data(reply_message=reply_message)
         await state.set_state(AddWorkoutStates.input_distance)
@@ -41,9 +44,6 @@ async def distance_handler(message: types.Message, state: FSMContext):
     except ValueError:
         await message.answer("Неверный формат ввода. Нужно ввести только число")
         return
-
-    reply_message = (await state.get_data()).get("reply_message")
-    await reply_message.delete_reply_markup()
 
     await state.update_data(distance=distance)
     await state.set_state(AddWorkoutStates.input_date)
@@ -120,7 +120,7 @@ async def skip_calories_handler(callback: types.CallbackQuery, state: FSMContext
     await reply_message.delete_reply_markup()
 
     await state.set_state(AddWorkoutStates.input_description)
-    reply_message = await message.answer("Добвьте описание к тренировке", reply_markup=skip_keyboard())
+    reply_message = await message.answer("Добавьте описание к тренировке", reply_markup=skip_keyboard())
     await state.update_data(reply_message=reply_message)
 
     await callback.answer()
@@ -162,6 +162,12 @@ async def done_add_workout(message: types.Message, state: FSMContext):
 
     workout = Workout(type_activity, date_activity, duration, distance, calories, description)
 
+    time_delta = datetime.timedelta(hours=duration.hour, minutes=duration.minute, seconds=duration.second)
+
+    date_ending = date_activity + time_delta
+
+    waiter.add_time_to_wait(date_ending, goals_dp.update_goal_states, type_activity, distance)
+
     await state.update_data(workout=workout)
 
     await message.answer(str(workout))
@@ -202,6 +208,11 @@ async def view_workouts_handler(message: types.Message, state: FSMContext):
 
 @router.message(StateFilter(ViewWorkoutsStates.input_type), F.text)
 async def view_type_activity_handler(message: types.Message, state: FSMContext):
+
+    if message.text not in TYPES_ACTIVITIES:
+        await message.answer("Выберете из предложенных")
+        return
+
     type_activity = message.text
 
     reply_message = (await state.get_data()).get("reply_message")
@@ -262,16 +273,14 @@ async def view_workouts(message: types.Message, state: FSMContext):
     type_activity = data.get("type_activity")
     period = data.get("period")
 
-    if type_activity is not None:
-        workouts = workout_dp.get_all_workouts_by_type(message.chat.id, type_activity)
-        if period is not None:
-            workouts = workout_dp.sort_workouts_by_period_of_time(workouts, period)
-    elif period is not None:
-        workouts = workout_dp.get_all_workouts_by_period_of_time(message.chat.id, period)
-    else:
-        workouts = workout_dp.get_all_workouts_by_user_id(message.chat.id)
+    workouts = workout_dp.get_all_workouts_by_user_id(message.chat.id)
 
-    if workouts == []:
+    if type_activity is not None:
+        workouts = workout_dp.sort_workouts_by_type(workouts, type_activity)
+    if period is not None:
+        workouts = workout_dp.sort_workouts_by_period_of_time(workouts, period)
+
+    if len(workouts) == 0:
         await message.answer("У вас пока нет тренировок")
     else:
         for workout in workouts:

@@ -1,6 +1,7 @@
 from src.model.databases import workout_dp
 import datetime
 
+
 class Statistics:
 
     @staticmethod
