@@ -12,13 +12,10 @@ class Waiter:
 
         workouts = workout_dp.get_all_after_now()
         for workout in workouts:
-            duration = datetime.datetime.strptime(workout.duration, "%H:%M:%S").time()
-            date_activity = datetime.datetime.strptime(workout.date_activity, "%Y-%m-%d %H:%M:%S")
-
-            time_delta = datetime.timedelta(hours=duration.hour,
-                                            minutes=duration.minute,
-                                            seconds=duration.second)
-            date_ending = date_activity + time_delta
+            time_delta = datetime.timedelta(hours=workout.duration.hour,
+                                            minutes=workout.duration.minute,
+                                            seconds=workout.duration.second)
+            date_ending = workout.date_activity + time_delta
             cls.add_time_to_wait(date_ending, goals_dp.update_goal_states, workout.type_activity, workout.distance)
 
         print(f"End recovering. Revorer {len(cls.__callback_for_waiting)} count")
@@ -40,10 +37,9 @@ class Waiter:
 
             nearest_time = cls.get_nearest_date()
 
-            print(f"Waitng... {nearest_time}")
             if nearest_time[1] is not None:
                 if now >= nearest_time[1]:
-                    print(f"Waiter {nearest_time}")
+                    print(f"Waiter: {nearest_time}")
                     parameter = cls.__callback_for_waiting[nearest_time[0]]
 
                     parameter[1](*parameter[2])
@@ -56,7 +52,6 @@ class Waiter:
     def get_nearest_date(cls) -> tuple:
         times_list = []
 
-        print(f"Start checking... len {len(cls.__callback_for_waiting)}")
         for data in cls.__callback_for_waiting:
             times_list.append(data[0])
 

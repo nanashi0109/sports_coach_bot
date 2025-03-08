@@ -103,12 +103,11 @@ class WorkoutsSql:
 
         return self.__convert_tuple_into_list_workout(workout_tuples)
 
-    def get_all_after_now(self) -> list[Workout]:
+    def get_all_after_now(self) -> list[Workout] | None:
         self.__cursor.execute("""
         SELECT type_activity, date_activity, duration, distance, calories, description FROM Workouts 
         WHERE "date_activity" >= ?;
         """, (str(datetime.datetime.now()), ))
-        print(str(datetime.datetime.now()))
         workout_tuples = self.__cursor.fetchall()
 
         if workout_tuples is None:
@@ -140,7 +139,7 @@ class WorkoutsSql:
         return self.__convert_tuple_into_list_workout(workouts)
 
     def sort_workouts_by_period_of_time(self, workouts, period) -> list[Workout]:
-        today = datetime.date.today()
+        today = datetime.datetime.today()
         last_day = today - datetime.timedelta(days=period)
 
         result_workouts = []
@@ -164,6 +163,9 @@ class WorkoutsSql:
         workouts = []
 
         for (type_activity, date_activity, duration, distance, calories, description) in workout_tuples:
+            duration = datetime.datetime.strptime(duration, "%H:%M:%S").time()
+            date_activity = datetime.datetime.strptime(date_activity, "%Y-%m-%d %H:%M:%S")
+
             workout = Workout(type_activity, date_activity, duration=duration, distance=distance,
                               calories=calories, description=description)
             workouts.append(workout)

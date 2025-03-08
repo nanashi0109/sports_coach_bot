@@ -34,10 +34,8 @@ class Statistics:
         durations = [workout.duration for workout in workouts]
 
         summary_time = datetime.timedelta()
-        for i in durations:
-            (h, m, s) = i.split(':')
-            d = datetime.timedelta(hours=int(h), minutes=int(m), seconds=int(s))
-            summary_time += d
+        for time in durations:
+            summary_time += datetime.timedelta(hours=time.hour, minutes=time.minute, seconds=time.second)
 
         return str(summary_time)
 
@@ -53,10 +51,8 @@ class Statistics:
         durations = [workout.duration for workout in workouts]
 
         summary_time = datetime.timedelta()
-        for i in durations:
-            (h, m, s) = i.split(':')
-            d = datetime.timedelta(hours=int(h), minutes=int(m), seconds=int(s))
-            summary_time += d
+        for time in durations:
+            summary_time += datetime.timedelta(hours=time.hour, minutes=time.minute, seconds=time.second)
 
         # TODO: remake to avg
         return str(summary_time)
@@ -65,7 +61,7 @@ class Statistics:
     def get_summary_calories_training(user_id, type_activity=None, count_days=None):
         workouts = Statistics.get_filter_workouts(user_id, type_activity, count_days)
 
-        workouts = list(filter(lambda workout: workout.distance is not None, workouts))
+        workouts = list(filter(lambda workout: workout.calories is not None, workouts))
 
         return sum([workout.calories for workout in workouts])
 
@@ -73,7 +69,7 @@ class Statistics:
     def get_avg_calories(user_id, type_activity=None, count_days=None):
         workouts = Statistics.get_filter_workouts(user_id, type_activity, count_days)
 
-        workouts = list(filter(lambda workout: workout.distance is not None, workouts))
+        workouts = list(filter(lambda workout: workout.calories is not None, workouts))
 
         if len(workouts) == 0:
             return 0
