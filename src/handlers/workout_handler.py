@@ -9,8 +9,7 @@ from src.keyboards.base_keyboards import skip_keyboard, get_yes_or_no_keyboard
 from src.model.workout_model import Workout
 from src.model.databases import workout_dp, goals_dp
 from resources.constants import TYPES_ACTIVITIES
-
-from src.bot import waiter
+from src.tools.time_waiter import Waiter
 
 import datetime
 
@@ -162,12 +161,6 @@ async def done_add_workout(message: types.Message, state: FSMContext):
 
     workout = Workout(type_activity, date_activity, duration, distance, calories, description)
 
-    time_delta = datetime.timedelta(hours=duration.hour, minutes=duration.minute, seconds=duration.second)
-
-    date_ending = date_activity + time_delta
-
-    waiter.add_time_to_wait(date_ending, goals_dp.update_goal_states, type_activity, distance)
-
     await state.update_data(workout=workout)
 
     await message.answer(str(workout))
@@ -180,8 +173,17 @@ async def save_workout_handler(callback: types.CallbackQuery, state: FSMContext)
     await message.delete_reply_markup()
     await message.answer("Тренировка сохранена")
 
-    workout = (await state.get_data()).get("workout")
+    data = await state.get_data()
+    workout = data.get("workout")
+    distance = data.get("distance")
+    date_activity = data.get("date")
+    duration = data.get("duration")
+    type_activity = data.get("type_activity")
 
+    time_delta = datetime.timedelta(hours=duration.hour, minutes=duration.minute, seconds=duration.second)
+    date_ending = date_activity + time_delta
+
+    Waiter.add_time_to_wait(date_ending, goals_dp.update_goal_states, type_activity, distance)
     workout_dp.add_workout(message.chat.id, workout)
 
     await state.clear()

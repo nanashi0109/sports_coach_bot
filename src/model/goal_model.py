@@ -22,7 +22,7 @@ class Goal:
         self.__id_sql = id_sql
 
     def __str__(self):
-        value = self.__current_stat if self.__target_stat >= self.__current_stat else self.__current_stat
+        value = self.__current_stat if self.__target_stat >= self.__current_stat else self.__target_stat
 
         result = (f"Тип тренировки: {self.__type_activity}\n"
                   f"Цель: {self.__goal_header}\n"
@@ -30,7 +30,7 @@ class Goal:
                   f"Прогресс: {value}/{self.target_stat}\n")
 
         if self.__is_completed:
-            result = "--Выполнено--" + result
+            result = "-----Выполнено-----\n" + result
 
         if self.__description is not None:
             result += f"Описание: {self.__description}"

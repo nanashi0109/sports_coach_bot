@@ -103,7 +103,20 @@ class WorkoutsSql:
 
         return self.__convert_tuple_into_list_workout(workout_tuples)
 
-    def get_all_workouts_by_period_of_time(self, user_id: int, period) -> list:
+    def get_all_after_now(self) -> list[Workout]:
+        self.__cursor.execute("""
+        SELECT type_activity, date_activity, duration, distance, calories, description FROM Workouts 
+        WHERE "date_activity" >= ?;
+        """, (str(datetime.datetime.now()), ))
+        print(str(datetime.datetime.now()))
+        workout_tuples = self.__cursor.fetchall()
+
+        if workout_tuples is None:
+            return None
+
+        return self.__convert_tuple_into_list_workout(workout_tuples)
+
+    def get_all_workouts_by_period_of_time(self, user_id: int, period) -> list[Workout]:
         today = datetime.date.today()
         last_day = today - datetime.timedelta(days=period)
 
@@ -116,7 +129,7 @@ class WorkoutsSql:
 
         return self.__convert_tuple_into_list_workout(workouts_tuples)
 
-    def get_all_workouts_by_type(self, user_id: int, type_activity) -> list:
+    def get_all_workouts_by_type(self, user_id: int, type_activity) -> list[Workout]:
         self.__cursor.execute("""
             SELECT type_activity, date_activity, duration, distance, calories, description FROM Workouts 
             WHERE "user_id" = ? AND "type_activity" = ?;
@@ -126,7 +139,7 @@ class WorkoutsSql:
 
         return self.__convert_tuple_into_list_workout(workouts)
 
-    def sort_workouts_by_period_of_time(self, workouts, period) -> list:
+    def sort_workouts_by_period_of_time(self, workouts, period) -> list[Workout]:
         today = datetime.date.today()
         last_day = today - datetime.timedelta(days=period)
 
@@ -138,7 +151,7 @@ class WorkoutsSql:
 
         return result_workouts
 
-    def sort_workouts_by_type(self, workouts, type_activity) -> list:
+    def sort_workouts_by_type(self, workouts, type_activity) -> list[Workout]:
         result_workouts = []
 
         for workout in workouts:
@@ -147,7 +160,7 @@ class WorkoutsSql:
 
         return result_workouts
 
-    def __convert_tuple_into_list_workout(self, workout_tuples) -> list:
+    def __convert_tuple_into_list_workout(self, workout_tuples) -> list[Workout]:
         workouts = []
 
         for (type_activity, date_activity, duration, distance, calories, description) in workout_tuples:

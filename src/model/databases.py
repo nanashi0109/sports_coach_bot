@@ -1,4 +1,4 @@
-from src.model import user_model, workout_model, goal_model, time_waiter
+from src.model import user_model, workout_model, goal_model
 
 user_dp = user_model.UsersSql()
 
