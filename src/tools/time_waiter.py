@@ -16,7 +16,7 @@ class Waiter:
                                             minutes=workout.duration.minute,
                                             seconds=workout.duration.second)
             date_ending = workout.date_activity + time_delta
-            cls.add_time_to_wait(date_ending, goals_dp.update_goal_states, workout.type_activity, workout.distance)
+            cls.add_time_to_wait(date_ending, goals_dp.update_goal_states,  workout.user_id, workout.type_activity, workout.distance)
 
         print(f"End recovering. Recover {len(cls.__callback_for_waiting)} count")
 

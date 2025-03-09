@@ -1,6 +1,8 @@
 import datetime
 import sqlite3
 
+from src.tools.bot_message import BotMessage
+
 
 class Goal:
     def __init__(self, goal_header: str,
@@ -26,11 +28,12 @@ class Goal:
 
         result = (f"Тип тренировки: {self.__type_activity}\n"
                   f"Цель: {self.__goal_header}\n"
-                  f"Дней осталось: {(self.__deadline - datetime.date.today()).days}\n"
                   f"Прогресс: {value}/{self.target_stat}\n")
 
         if self.__is_completed:
             result = "-----Выполнено-----\n" + result
+        else:
+            result += f"Дней осталось: {(self.__deadline - datetime.date.today()).days}\n"
 
         if self.__description is not None:
             result += f"Описание: {self.__description}"
@@ -100,7 +103,7 @@ class GoalsSql:
 
         self.__connection.commit()
 
-    def get_all_workouts_by_user_id(self, user_id) -> list or None:
+    def get_all_goals_by_user_id(self, user_id) -> list or None:
         self.__cursor.execute("""
         SELECT id, goal_header, type_activity, deadline, target_stat, current_stat, description, is_completed FROM Goals 
         WHERE "user_id" = ?;
@@ -127,16 +130,23 @@ class GoalsSql:
                         target_stat=int(target_stat), current_stat=int(current_stat), description=description,
                         is_completed=bool(is_completed), id_sql=id_sql)
             goals.append(goal)
-            print(type(deadline))
-            print(type(target_stat))
-            print(type(is_completed))
 
         return goals
 
-    def update_goal_states(self, type_activity: str, value: float):
-        self.__cursor.execute("UPDATE Goals SET current_stat = current_stat + ? WHERE type_activity = ?;",
-                              (value, type_activity))
+    def update_goal_states(self, user_id: int, type_activity: str, value: float):
+        self.__cursor.execute("UPDATE Goals SET current_stat = current_stat + ? "
+                              "WHERE type_activity = ? AND user_id = ?;",
+                              (value, type_activity, user_id))
 
-        self.__cursor.execute("""UPDATE Goals SET is_completed = True WHERE current_stat >= target_stat;""")
+        self.__check_goals_on_complete(user_id)
 
         self.__connection.commit()
+
+    def __check_goals_on_complete(self, user_id: int):
+        goals = self.get_all_goals_by_user_id(user_id)
+
+        for goal in goals:
+            if not goal.is_completed and goal.target_stat <= goal.current_stat:
+                BotMessage.send_message(user_id, "Цель достигнута!")
+
+        self.__cursor.execute("""UPDATE Goals SET is_completed = True WHERE current_stat >= target_stat;""")

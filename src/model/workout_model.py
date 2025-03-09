@@ -9,7 +9,8 @@ class Workout:
                  duration: datetime.time = None,
                  distance: float = None,
                  calories: int = None,
-                 description: str = None):
+                 description: str = None,
+                 user_id: int = None):
         self.__type_activity = type_activity
         self.__date = date_activity
 
@@ -17,6 +18,7 @@ class Workout:
         self.__distance = distance
         self.__calories = calories
         self.__description = description
+        self.__user_id = user_id
 
     def __str__(self):
         result = ""
@@ -58,6 +60,10 @@ class Workout:
     def description(self) -> str:
         return self.__description
 
+    @property
+    def user_id(self) -> int:
+        return self.__user_id
+
 
 class WorkoutsSql:
     def __init__(self):
@@ -92,7 +98,7 @@ class WorkoutsSql:
 
     def get_all_workouts_by_user_id(self, user_id) -> list or None:
         self.__cursor.execute("""
-        SELECT type_activity, date_activity, duration, distance, calories, description FROM Workouts 
+        SELECT type_activity, date_activity, duration, distance, calories, description, user_id FROM Workouts 
         WHERE "user_id" = ?;
         """, (user_id, ))
 
@@ -105,7 +111,7 @@ class WorkoutsSql:
 
     def get_all_after_now(self) -> list[Workout] | None:
         self.__cursor.execute("""
-        SELECT type_activity, date_activity, duration, distance, calories, description FROM Workouts 
+        SELECT type_activity, date_activity, duration, distance, calories, description, user_id FROM Workouts 
         WHERE "date_activity" >= ?;
         """, (str(datetime.datetime.now()), ))
         workout_tuples = self.__cursor.fetchall()
@@ -115,30 +121,7 @@ class WorkoutsSql:
 
         return self.__convert_tuple_into_list_workout(workout_tuples)
 
-    def get_all_workouts_by_period_of_time(self, user_id: int, period) -> list[Workout]:
-        today = datetime.date.today()
-        last_day = today - datetime.timedelta(days=period)
-
-        self.__cursor.execute("""
-            SELECT type_activity, date_activity, duration, distance, calories, description FROM Workouts 
-            WHERE "user_id" = ? AND "date_activity" >= ? AND "date_activity" <= ?;
-        """, (user_id, last_day, today))
-
-        workouts_tuples = self.__cursor.fetchall()
-
-        return self.__convert_tuple_into_list_workout(workouts_tuples)
-
-    def get_all_workouts_by_type(self, user_id: int, type_activity) -> list[Workout]:
-        self.__cursor.execute("""
-            SELECT type_activity, date_activity, duration, distance, calories, description FROM Workouts 
-            WHERE "user_id" = ? AND "type_activity" = ?;
-        """, (user_id, type_activity))
-
-        workouts = self.__cursor.fetchall()
-
-        return self.__convert_tuple_into_list_workout(workouts)
-
-    def sort_workouts_by_period_of_time(self, workouts, period) -> list[Workout]:
+    def filter_workouts_by_period_of_time(self, workouts, period) -> list[Workout]:
         today = datetime.datetime.today()
         last_day = today - datetime.timedelta(days=period)
 
@@ -150,7 +133,7 @@ class WorkoutsSql:
 
         return result_workouts
 
-    def sort_workouts_by_type(self, workouts, type_activity) -> list[Workout]:
+    def filter_workouts_by_type(self, workouts, type_activity) -> list[Workout]:
         result_workouts = []
 
         for workout in workouts:
@@ -162,12 +145,12 @@ class WorkoutsSql:
     def __convert_tuple_into_list_workout(self, workout_tuples) -> list[Workout]:
         workouts = []
 
-        for (type_activity, date_activity, duration, distance, calories, description) in workout_tuples:
+        for (type_activity, date_activity, duration, distance, calories, description, user_id) in workout_tuples:
             duration = datetime.datetime.strptime(duration, "%H:%M:%S").time()
             date_activity = datetime.datetime.strptime(date_activity, "%Y-%m-%d %H:%M:%S")
 
             workout = Workout(type_activity, date_activity, duration=duration, distance=distance,
-                              calories=calories, description=description)
+                              calories=calories, description=description, user_id=user_id)
             workouts.append(workout)
 
         return workouts

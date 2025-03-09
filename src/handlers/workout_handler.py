@@ -6,8 +6,8 @@ from resources.states import AddWorkoutStates, ViewWorkoutsStates
 from src.keyboards.workout_keyboards import get_type_activities_keyboard
 from src.keyboards.base_keyboards import skip_keyboard, get_yes_or_no_keyboard
 
-from src.model.workout_model import Workout
 from src.model.databases import workout_dp, goals_dp
+from src.model.workout_model import Workout
 from resources.constants import TYPES_ACTIVITIES
 from src.tools.time_waiter import Waiter
 
@@ -183,7 +183,7 @@ async def save_workout_handler(callback: types.CallbackQuery, state: FSMContext)
     time_delta = datetime.timedelta(hours=duration.hour, minutes=duration.minute, seconds=duration.second)
     date_ending = date_activity + time_delta
 
-    Waiter.add_time_to_wait(date_ending, goals_dp.update_goal_states, type_activity, distance)
+    Waiter.add_time_to_wait(date_ending, goals_dp.update_goal_states, message.chat.id, type_activity, distance)
     workout_dp.add_workout(message.chat.id, workout)
 
     await state.clear()
@@ -278,9 +278,9 @@ async def view_workouts(message: types.Message, state: FSMContext):
     workouts = workout_dp.get_all_workouts_by_user_id(message.chat.id)
 
     if type_activity is not None:
-        workouts = workout_dp.sort_workouts_by_type(workouts, type_activity)
+        workouts = workout_dp.filter_workouts_by_type(workouts, type_activity)
     if period is not None:
-        workouts = workout_dp.sort_workouts_by_period_of_time(workouts, period)
+        workouts = workout_dp.filter_workouts_by_period_of_time(workouts, period)
 
     if len(workouts) == 0:
         await message.answer("У вас пока нет тренировок")

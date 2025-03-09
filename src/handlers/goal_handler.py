@@ -140,7 +140,7 @@ async def clear_goal_handler(callback: types.CallbackQuery, state: FSMContext):
 
 @router.message(StateFilter(None), Command("view_goals"))
 async def view_goals_handler(message: types.Message, state: FSMContext):
-    goals = goals_dp.get_all_workouts_by_user_id(message.chat.id)
+    goals = goals_dp.get_all_goals_by_user_id(message.chat.id)
 
     if len(goals) == 0:
         await message.answer("Нет целей :(")
