@@ -18,7 +18,7 @@ class Waiter:
             date_ending = workout.date_activity + time_delta
             cls.add_time_to_wait(date_ending, goals_dp.update_goal_states, workout.type_activity, workout.distance)
 
-        print(f"End recovering. Revorer {len(cls.__callback_for_waiting)} count")
+        print(f"End recovering. Recover {len(cls.__callback_for_waiting)} count")
 
     @classmethod
     def add_time_to_wait(cls, target: datetime.datetime, callback, *args):

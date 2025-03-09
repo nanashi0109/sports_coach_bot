@@ -14,6 +14,11 @@ from src.keyboards.base_keyboards import get_yes_or_no_keyboard
 router = Router()
 
 
+@router.message(StateFilter(None), Command("help"))
+async def help_handler(message: types.Message, state: FSMContext):
+    await message.answer(constants.HELP_MESSAGE)
+
+
 @router.message(StateFilter(None), Command("start"))
 async def start_handler(message: types.Message, state: FSMContext):
     await message.answer(constants.HELLO_MESSAGE)
