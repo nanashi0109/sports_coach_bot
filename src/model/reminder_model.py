@@ -1,4 +1,5 @@
-from datetime import datetime
+import datetime
+from dateutil.relativedelta import relativedelta
 from enum import IntEnum
 
 import sqlite3
@@ -19,30 +20,17 @@ class ReminderType(IntEnum):
     RECORD = 3
 
 
-class ReminderController:
-    @staticmethod
-    def create_reminder(user_id: int,
-                        date: datetime, type: ReminderType,
-                        repeat: ReminderRepeating, description: str = None):
-        from src.model.databases import reminder_dp
-
-        reminder = ReminderModel(date, type, repeat, description)
-
-        reminder_dp.add(user_id, reminder)
-
-        Waiter.add_time_to_wait(date, BotMessage.send_message, user_id, description)
-
-
 class ReminderModel:
     def __init__(self, time_remind: datetime,
                  type: ReminderType,
                  repeating: ReminderRepeating = ReminderRepeating.NOT_REPEAT,
-                 description: str = None, id: int = None):
+                 description: str = None, id: int = None, user_id: int = None):
         self.__time_remind = time_remind
         self.__type = type
         self.__repeating = repeating
         self.__description = description
         self.__id = id
+        self.__user_id = user_id
 
     def __str__(self):
         pass
@@ -50,6 +38,10 @@ class ReminderModel:
     @property
     def time_remind(self) -> datetime:
         return self.__time_remind
+
+    @time_remind.setter
+    def time_remind(self, value) -> None:
+        self.__time_remind = value
 
     @property
     def type(self) -> ReminderType:
@@ -67,9 +59,9 @@ class ReminderModel:
     def id(self) -> int:
         return self.__id
 
-    @id.setter
-    def id(self, value: int):
-        self.__id = value
+    @property
+    def user_id(self):
+        return self.__user_id
 
 
 class ReminderDB:
@@ -77,6 +69,7 @@ class ReminderDB:
         self.__connection = sqlite3.connect("sport_coach.dp")
         self.__cursor = self.__connection.cursor()
         self.__create_db()
+
 
     def __create_db(self):
         self.__cursor.execute("""CREATE TABLE IF NOT EXISTS reminders(
@@ -103,7 +96,7 @@ class ReminderDB:
 
     def get_all_by_user_id(self, user_id: int):
         self.__cursor.execute("""
-        SELECT (id, time, type, repeating, description) FROM reminders WHERE user_id = ?;
+        SELECT (id, time, type, repeating, description, user_id) FROM reminders WHERE user_id = ?;
         """, (user_id, ))
 
         reminders = self.__convert_to_list(self.__cursor.fetchall())
@@ -112,7 +105,7 @@ class ReminderDB:
 
     def get_all(self):
         self.__cursor.execute("""
-        SELECT (id, time, type, repeating, description) FROM reminders;
+        SELECT id, user_id, time, type, repeating, description FROM reminders;
         """)
 
         reminders = self.__convert_to_list(self.__cursor.fetchall())
@@ -122,10 +115,55 @@ class ReminderDB:
     def __convert_to_list(self, reminder_tuple):
         reminders = []
 
-        for (id, time, type, repeating, description) in reminder_tuple:
-            reminder = ReminderModel(id=id, time_remind=datetime.strptime(time, '%Y-%m-%d %H:%M:%S'),
+        for (id, user_id, time, type, repeating, description) in reminder_tuple:
+            reminder = ReminderModel(id=id, time_remind=datetime.datetime.strptime(time, '%Y-%m-%d %H:%M:%S'),
                                      type=ReminderType(type), repeating=ReminderRepeating(repeating),
-                                     description=description)
+                                     description=description, user_id=user_id)
             reminders.append(reminder)
 
         return reminders
+
+
+class ReminderController:
+    @staticmethod
+    def create_reminder(user_id: int,
+                        date: datetime, type: ReminderType,
+                        repeat: ReminderRepeating, description: str = None):
+        from src.model.databases import reminder_dp
+
+        reminder = ReminderModel(date, type, repeat, description)
+
+        reminder_dp.add(user_id, reminder)
+
+        Waiter.add_time_to_wait(date, ReminderController.on_active_reminder, user_id, reminder)
+
+    @staticmethod
+    def on_active_reminder(user_id: int, reminder: ReminderModel):
+        from src.model.databases import reminder_dp
+
+        BotMessage.send_message(user_id, reminder.description)
+
+        reminder_dp.remove_by_id(reminder.id)
+
+        match reminder.repeating:
+            case ReminderRepeating.NOT_REPEAT:
+                return
+            case ReminderRepeating.DAILY:
+                reminder.time_remind += datetime.timedelta(days=1)
+            case ReminderRepeating.WEEKLY:
+                reminder.time_remind += datetime.timedelta(days=7)
+            case ReminderRepeating.MONTHLY:
+                reminder.time_remind += relativedelta(months=1)
+
+        ReminderController.create_reminder(user_id, reminder.time_remind, reminder.type, reminder.repeating, reminder.description)
+
+    @staticmethod
+    def add_all_reminder_from_db():
+        from src.model.databases import reminder_dp
+
+        reminders = reminder_dp.get_all()
+
+        for reminder in reminders:
+            Waiter.add_time_to_wait(reminder.time_remind,
+                                    ReminderController.on_active_reminder, reminder.user_id, reminder)
+

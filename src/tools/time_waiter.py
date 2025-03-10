@@ -8,6 +8,7 @@ class Waiter:
     @classmethod
     def recover_waiting(cls):
         from src.model.databases import workout_dp, goals_dp
+        from src.model.reminder_model import ReminderController
 
         print("Start recovering...")
 
@@ -18,6 +19,8 @@ class Waiter:
                                             seconds=workout.duration.second)
             date_ending = workout.date_activity + time_delta
             cls.add_time_to_wait(date_ending, goals_dp.update_goal_states,  workout.user_id, workout.type_activity, workout.distance)
+
+        ReminderController.add_all_reminder_from_db()
 
         print(f"End recovering. Recover {len(cls.__callback_for_waiting)} count")
 
