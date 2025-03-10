@@ -87,8 +87,8 @@ class Statistics:
         workouts = workout_dp.get_all_workouts_by_user_id(user_id)
 
         if type_activity is not None:
-            workouts = workout_dp.sort_workouts_by_type(workouts, type_activity)
+            workouts = workout_dp.filter_workouts_by_type(workouts, type_activity)
         if count_days is not None:
-            workouts = workout_dp.sort_workouts_by_period_of_time(workouts, count_days)
+            workouts = workout_dp.filter_workouts_by_period_of_time(workouts, count_days)
 
         return workouts

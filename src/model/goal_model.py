@@ -149,4 +149,7 @@ class GoalsSql:
             if not goal.is_completed and goal.target_stat <= goal.current_stat:
                 BotMessage.send_message(user_id, "Цель достигнута!")
 
-        self.__cursor.execute("""UPDATE Goals SET is_completed = True WHERE current_stat >= target_stat;""")
+        self.__cursor.execute("""
+        UPDATE Goals SET is_completed = True 
+        WHERE current_stat >= target_stat AND user_id = ?;""",
+                              (user_id, ))

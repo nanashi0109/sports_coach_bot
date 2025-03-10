@@ -1,6 +1,5 @@
 import datetime
 import asyncio
-from src.model.databases import workout_dp, goals_dp
 
 
 class Waiter:
@@ -8,6 +7,8 @@ class Waiter:
 
     @classmethod
     def recover_waiting(cls):
+        from src.model.databases import workout_dp, goals_dp
+
         print("Start recovering...")
 
         workouts = workout_dp.get_all_after_now()

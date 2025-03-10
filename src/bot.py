@@ -21,10 +21,7 @@ async def main():
     await dp.start_polling(bot)
 
 
-
 if __name__ == "__main__":
     print("Bot start")
     Waiter.recover_waiting()
     asyncio.run(main())
-
-print(f"Bot: {bot_messanger}")

@@ -6,9 +6,10 @@ from resources.states import AddWorkoutStates, ViewWorkoutsStates
 from src.keyboards.workout_keyboards import get_type_activities_keyboard
 from src.keyboards.base_keyboards import skip_keyboard, get_yes_or_no_keyboard
 
+from src.model.reminder_model import ReminderController, ReminderType, ReminderRepeating
 from src.model.databases import workout_dp, goals_dp
 from src.model.workout_model import Workout
-from resources.constants import TYPES_ACTIVITIES
+from resources.constants import TYPES_ACTIVITIES, WORKOUT_REMINDER_TEXT
 from src.tools.time_waiter import Waiter
 
 import datetime
@@ -184,6 +185,12 @@ async def save_workout_handler(callback: types.CallbackQuery, state: FSMContext)
     date_ending = date_activity + time_delta
 
     Waiter.add_time_to_wait(date_ending, goals_dp.update_goal_states, message.chat.id, type_activity, distance)
+    ReminderController.create_reminder(message.chat.id,
+                                       date_activity - datetime.timedelta(hours=1),
+                                       ReminderType.WORKOUT,
+                                       ReminderRepeating.NOT_REPEAT,
+                                       description=f"{WORKOUT_REMINDER_TEXT}\n{str(workout)}")
+
     workout_dp.add_workout(message.chat.id, workout)
 
     await state.clear()
