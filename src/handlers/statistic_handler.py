@@ -5,15 +5,21 @@ from aiogram.fsm.context import FSMContext
 from resources.states import StatisticStates
 from src.keyboards.statistics_keyboards import get_type_activities_keyboard
 from src.keyboards.base_keyboards import skip_keyboard
-
 from src.model.statistic_model import Statistics
-from resources.constants import TYPES_ACTIVITIES
+from resources.constants import TYPES_ACTIVITIES, NEED_REGISTRY_TEXT
+
+from src.handlers.start_handler import is_registry
+
 
 router = Router()
 
 
 @router.message(StateFilter(None), Command("statistics"))
 async def get_statistic_handler(message: types.Message, state: FSMContext):
+    if not is_registry(message.chat.id):
+        await message.answer(NEED_REGISTRY_TEXT)
+        return
+
     await message.answer("Выберете тип активности", reply_markup=get_type_activities_keyboard())
 
     await state.set_state(StatisticStates.input_type_activity)

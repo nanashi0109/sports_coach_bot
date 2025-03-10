@@ -9,7 +9,8 @@ from src.keyboards.base_keyboards import skip_keyboard, get_yes_or_no_keyboard
 from src.model.reminder_model import ReminderController, ReminderType, ReminderRepeating
 from src.model.databases import workout_dp, goals_dp
 from src.model.workout_model import Workout
-from resources.constants import TYPES_ACTIVITIES, WORKOUT_REMINDER_TEXT
+from src.handlers.start_handler import is_registry
+from resources.constants import TYPES_ACTIVITIES, WORKOUT_REMINDER_TEXT, NEED_REGISTRY_TEXT
 from src.tools.time_waiter import Waiter
 
 import datetime
@@ -19,6 +20,10 @@ router = Router()
 
 @router.message(StateFilter(None), Command("add_workout"))
 async def add_workout_handler(message: types.Message, state: FSMContext):
+    if not is_registry(message.chat.id):
+        await message.answer(NEED_REGISTRY_TEXT)
+        return
+
     await message.answer("Выберете тип активности", reply_markup=get_type_activities_keyboard())
 
     await state.set_state(AddWorkoutStates.input_type)
@@ -209,6 +214,10 @@ async def clear_workout_handler(callback: types.CallbackQuery, state: FSMContext
 
 @router.message(StateFilter(None), Command("view_workouts"))
 async def view_workouts_handler(message: types.Message, state: FSMContext):
+    if not is_registry(message.chat.id):
+        await message.answer(NEED_REGISTRY_TEXT)
+        return
+
     reply_message = await message.answer("Введите тип тренировок", reply_markup=skip_keyboard())
 
     await state.update_data(reply_message=reply_message)

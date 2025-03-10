@@ -3,9 +3,11 @@ from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 
 from resources.states import SetGoalStates
+from resources.constants import NEED_REGISTRY_TEXT
 from src.keyboards.workout_keyboards import get_type_activities_keyboard
 from src.keyboards.goals_keyboards import get_goals_by_type
 from src.keyboards.base_keyboards import skip_keyboard, get_yes_or_no_keyboard
+from src.handlers.start_handler import is_registry
 
 from src.model.goal_model import Goal
 from src.model.databases import goals_dp
@@ -17,6 +19,10 @@ router = Router()
 
 @router.message(StateFilter(None), Command("set_goal"))
 async def set_goal_handler(message: types.Message, state: FSMContext):
+    if not is_registry(message.chat.id):
+        await message.answer(NEED_REGISTRY_TEXT)
+        return
+
     message_keyboard = await message.answer("Выберете тип тренировки", reply_markup=get_type_activities_keyboard())
 
     await state.update_data(message_keyboard=message_keyboard)
@@ -140,6 +146,10 @@ async def clear_goal_handler(callback: types.CallbackQuery, state: FSMContext):
 
 @router.message(StateFilter(None), Command("view_goals"))
 async def view_goals_handler(message: types.Message, state: FSMContext):
+    if not is_registry(message.chat.id):
+        await message.answer(NEED_REGISTRY_TEXT)
+        return
+
     goals = goals_dp.get_all_goals_by_user_id(message.chat.id)
 
     if len(goals) == 0:

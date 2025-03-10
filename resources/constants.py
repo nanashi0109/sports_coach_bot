@@ -22,3 +22,5 @@ GOALS_FOR_TYPES_ACTIVITIES = {
 }
 
 WORKOUT_REMINDER_TEXT = "У вас запланирована тренировка!"
+
+NEED_REGISTRY_TEXT = "Для начала нужно зарегистрироваться  с помощью команды /register"
