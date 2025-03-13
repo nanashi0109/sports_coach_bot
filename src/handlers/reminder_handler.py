@@ -5,6 +5,7 @@ from aiogram.fsm.context import FSMContext
 from resources.states import ReminderStates
 from resources.constants import DATETIME_FORMAT, TYPES_REPEATING_REMINDER, WORKOUT_REMINDER_TEXT, NEED_REGISTRY_TEXT
 
+from src.model.databases import reminder_dp
 from src.model.reminder_model import ReminderModel, ReminderRepeating, ReminderController
 from src.keyboards.reminder_keyboard import get_type_reminder_repeating_keyboard
 from src.keyboards.base_keyboards import get_yes_or_no_keyboard
@@ -12,6 +13,7 @@ from src.keyboards.base_keyboards import get_yes_or_no_keyboard
 from src.handlers.start_handler import is_registry
 
 import datetime
+
 
 router = Router()
 
@@ -94,3 +96,15 @@ async def clear_reminder_handler(callback: types.CallbackQuery, state: FSMContex
 
     await state.clear()
     await callback.answer()
+
+
+@router.message(StateFilter(None), Command("view_reminders"))
+async def view_reminders_handler(message: types.Message, state: FSMContext):
+    if not is_registry(message.chat.id):
+        await message.answer(NEED_REGISTRY_TEXT)
+        return
+
+    reminders = reminder_dp.get_all_user_reminder_by_user_id(message.chat.id)
+
+    for reminder in reminders:
+        await message.answer(str(reminder))

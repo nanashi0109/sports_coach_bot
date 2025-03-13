@@ -20,11 +20,12 @@ class ReminderType(IntEnum):
     WORKOUT = 1,
     GOAL = 2,
     RECORD = 3
+    USER_WORKOUT = 4
 
 
 class ReminderModel:
     def __init__(self, time_remind: datetime,
-                 type: ReminderType = ReminderType.WORKOUT,
+                 type: ReminderType = ReminderType.USER_WORKOUT,
                  repeating: ReminderRepeating = ReminderRepeating.NOT_REPEAT,
                  description: str = None, id: int = None, user_id: int = None):
         self.__time_remind = time_remind
@@ -101,7 +102,17 @@ class ReminderDB:
 
     def get_all_by_user_id(self, user_id: int):
         self.__cursor.execute("""
-        SELECT (id, time, type, repeating, description, user_id) FROM reminders WHERE user_id = ?;
+        SELECT id, user_id, time, type, repeating, description FROM reminders WHERE user_id = ?;
+        """, (user_id, ))
+
+        reminders = self.__convert_to_list(self.__cursor.fetchall())
+
+        return reminders
+
+    def get_all_user_reminder_by_user_id(self, user_id: int):
+        self.__cursor.execute("""
+        SELECT id, user_id, time, type, repeating, description FROM reminders 
+        WHERE user_id = ? and type = 4; 
         """, (user_id, ))
 
         reminders = self.__convert_to_list(self.__cursor.fetchall())
