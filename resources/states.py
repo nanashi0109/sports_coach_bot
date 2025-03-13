@@ -40,3 +40,9 @@ class StatisticStates(StatesGroup):
     input_type_activity = State()
     input_period = State()
     done_statistic = State()
+
+
+class ReminderStates(StatesGroup):
+    input_datetime = State()
+    input_repeating = State()
+    done_add_remind = State()

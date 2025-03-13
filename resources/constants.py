@@ -11,16 +11,19 @@ HELP_MESSAGE = ("Список команд\n"
                 "/set_goal - установка цели\n"
                 "/view_goals - просмотр всех текущих целей\n"
                 "/statistics - просмотр статистики и аналитики\n"
-                "/reminder - настройка напоминаний")
+                "/set_reminder - установить напоминаний")
+
+NEED_REGISTRY_TEXT = "Для начала нужно зарегистрироваться  с помощью команды /register"
+WORKOUT_REMINDER_TEXT = "У вас запланирована тренировка!"
+
+
+DATETIME_FORMAT = '%Y:%m:%d:%H:%M'
 
 TYPES_ACTIVITIES = ["Бег", "Ходьба", "Плавание"]
-
 GOALS_FOR_TYPES_ACTIVITIES = {
     "Бег": ["Пробежать n км"],
     "Ходьба": ["Пройти n км"],
     "Плавание": ["Проплыть n км"],
 }
 
-WORKOUT_REMINDER_TEXT = "У вас запланирована тренировка!"
-
-NEED_REGISTRY_TEXT = "Для начала нужно зарегистрироваться  с помощью команды /register"
+TYPES_REPEATING_REMINDER = ["Не повторять", "Ежедневно", "Еженедельно", "Ежемесячно"]
