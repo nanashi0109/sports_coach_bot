@@ -11,6 +11,7 @@ from src.keyboards.reminder_keyboard import get_type_reminder_repeating_keyboard
 from src.keyboards.base_keyboards import get_yes_or_no_keyboard
 
 from src.handlers.start_handler import is_registry
+from src.tools.checks import check_datetime
 
 import datetime
 
@@ -35,6 +36,10 @@ async def date_reminder_handler(message: types.Message, state: FSMContext):
         date_remind = datetime.datetime.strptime(message.text, DATETIME_FORMAT)
     except ValueError:
         await message.answer("Неверный формат ввода. Попробуйте снова")
+        return
+
+    if not check_datetime(date_remind):
+        await message.answer("Неверное время! Введите время после текущего")
         return
 
     await message.answer("Выберете, когда повторять напоминание", reply_markup=get_type_reminder_repeating_keyboard())

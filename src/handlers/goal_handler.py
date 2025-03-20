@@ -3,7 +3,7 @@ from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 
 from resources.states import SetGoalStates
-from resources.constants import NEED_REGISTRY_TEXT
+from resources.constants import NEED_REGISTRY_TEXT, GOALS_FOR_TYPES_ACTIVITIES
 from src.keyboards.workout_keyboards import get_type_activities_keyboard
 from src.keyboards.goals_keyboards import get_goals_by_type
 from src.keyboards.base_keyboards import skip_keyboard, get_yes_or_no_keyboard
@@ -11,6 +11,7 @@ from src.handlers.start_handler import is_registry
 
 from src.model.goal_model import Goal
 from src.model.databases import goals_dp
+from src.tools.checks import check_datetime
 
 import datetime
 
@@ -45,6 +46,12 @@ async def type_goal_handler(message: types.Message, state: FSMContext):
 
 @router.message(StateFilter(SetGoalStates.input_header), F.text)
 async def goal_header_handler(message: types.Message, state: FSMContext):
+    type = (await state.get_data()).get("type_activity")
+
+    if message.text not in GOALS_FOR_TYPES_ACTIVITIES.get(type):
+        await message.answer("Выберете из предложенных")
+        return
+
     await state.update_data(goal_header=message.text)
 
     await message.answer("Введите значение для цели (только число)")
@@ -72,6 +79,10 @@ async def goal_deadline_handler(message: types.Message, state: FSMContext):
         date = datetime.datetime.strptime(message.text, date_format).date()
     except ValueError:
         await message.answer("Неверный формат ввода! Попробуйте снова")
+        return
+
+    if not check_datetime(date):
+        await message.answer("Неверное время! Введите время после текущего")
         return
 
     message_keyboard = await message.answer("Добавьте описание для цели", reply_markup=skip_keyboard())
@@ -112,7 +123,8 @@ async def done_add_goal(message: types.Message, state: FSMContext):
     description = data.get("description")
     deadline = data.get("deadline")
 
-    goal = Goal(goal_header=goal_header, type_activity=type_activity, target_stat=target_state, deadline=deadline, description=description)
+    goal = Goal(goal_header=goal_header, type_activity=type_activity,
+                target_stat=target_state, deadline=deadline, description=description)
 
     await message.answer(str(goal))
 

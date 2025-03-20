@@ -12,6 +12,7 @@ from src.model.workout_model import Workout
 from src.handlers.start_handler import is_registry
 from resources.constants import TYPES_ACTIVITIES, WORKOUT_REMINDER_TEXT, NEED_REGISTRY_TEXT
 from src.tools.time_waiter import Waiter
+from src.tools.checks import check_datetime
 
 import datetime
 
@@ -75,6 +76,10 @@ async def date_activity_handler(message: types.Message, state: FSMContext):
         date = datetime.datetime.strptime(message.text, date_format)
     except ValueError:
         await message.answer("Неверный формат ввода! Попробуйте снова")
+        return
+
+    if not check_datetime(date):
+        await message.answer("Неверное время! Введите время после текущего")
         return
 
     await state.update_data(date=date)
