@@ -36,7 +36,7 @@ class ReminderModel:
         self.__user_id = user_id
 
     def __str__(self):
-        result = (f"Напоминание\n"
+        result = (f"Напоминание #{self.id}\n"
                   f"Дата и время: {self.__time_remind}\n"
                   f"Повторение: {TYPES_REPEATING_REMINDER[self.__repeating]}\n")
 
@@ -65,6 +65,10 @@ class ReminderModel:
     @property
     def id(self) -> int:
         return self.__id
+
+    @id.setter
+    def id(self, value) -> None:
+        self.__id = value
 
     @property
     def user_id(self):
@@ -97,6 +101,17 @@ class ReminderDB:
 
     def remove_by_id(self, id: int):
         self.__cursor.execute("""DELETE FROM reminders WHERE id = ?""", (id, ))
+
+        self.__connection.commit()
+
+    def remove_by_id_and_user_id(self, id: int, user_id: int):
+        self.__cursor.execute("""DELETE FROM reminders WHERE id = ? AND user_id = ?""", (id, user_id))
+
+        self.__connection.commit()
+
+    def update_remind_time(self, id: int, new_time: datetime.datetime):
+        self.__cursor.execute("""UPDATE reminders SET time = ? WHERE id = ?""",
+                              (new_time, id))
 
         self.__connection.commit()
 
@@ -156,29 +171,36 @@ class ReminderController:
     @staticmethod
     def add_reminder(user_id: int, reminder: ReminderModel):
         from src.model.databases import reminder_dp
+
         reminder_dp.add(user_id, reminder)
+        reminder.id = ReminderController.get_last_id()
 
         Waiter.add_time_to_wait(reminder.time_remind, ReminderController.on_active_reminder, user_id, reminder)
 
     @staticmethod
-    def on_active_reminder(user_id: int, reminder: ReminderModel):
+    def update_remind(user_id: int, remind: ReminderModel):
         from src.model.databases import reminder_dp
 
+        reminder_dp.update_remind_time(remind.id, remind.time_remind)
+        Waiter.add_time_to_wait(remind.time_remind, ReminderController.on_active_reminder, user_id, remind)
+
+    @staticmethod
+    def on_active_reminder(user_id: int, reminder: ReminderModel):
+        from src.model.databases import reminder_dp
         BotMessage.send_message(user_id, reminder.description)
 
-        reminder_dp.remove_by_id(reminder.id)
-
         match reminder.repeating:
-            case ReminderRepeating.NOT_REPEAT:
-                return
             case ReminderRepeating.DAILY:
                 reminder.time_remind += datetime.timedelta(days=1)
             case ReminderRepeating.WEEKLY:
                 reminder.time_remind += datetime.timedelta(days=7)
             case ReminderRepeating.MONTHLY:
                 reminder.time_remind += relativedelta(months=1)
+            case ReminderRepeating.NOT_REPEAT:
+                reminder_dp.remove_by_id(reminder.id)
+                return
 
-        ReminderController.add_reminder(user_id, reminder)
+        ReminderController.update_remind(user_id, reminder)
 
     @staticmethod
     def add_all_reminder_from_db():
@@ -189,3 +211,14 @@ class ReminderController:
         for reminder in reminders:
             Waiter.add_time_to_wait(reminder.time_remind,
                                     ReminderController.on_active_reminder, reminder.user_id, reminder)
+
+    @staticmethod
+    def get_last_id():
+        from src.model.databases import reminder_dp
+
+        ids = [remind.id for remind in reminder_dp.get_all()]
+
+        if len(ids) == 0:
+            return 0
+
+        return max(ids)

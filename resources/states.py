@@ -46,3 +46,6 @@ class ReminderStates(StatesGroup):
     input_datetime = State()
     input_repeating = State()
     done_add_remind = State()
+
+    remove_reminder = State()
+

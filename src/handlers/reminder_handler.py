@@ -106,5 +106,35 @@ async def view_reminders_handler(message: types.Message, state: FSMContext):
 
     reminders = reminder_dp.get_all_user_reminder_by_user_id(message.chat.id)
 
+    if len(reminders) == 0:
+        await message.answer("У вас не напоминаний")
+
     for reminder in reminders:
         await message.answer(str(reminder))
+
+
+@router.message(StateFilter(None), Command("remove_reminder"))
+async def remove_reminder_handler(message: types.Message, state: FSMContext):
+    if not is_registry(message.chat.id):
+        await message.answer(NEED_REGISTRY_TEXT)
+        return
+
+    await message.answer("Введите уникальный номер напоминание (-1 для отмены)")
+    await state.set_state(ReminderStates.remove_reminder)
+
+
+@router.message(StateFilter(ReminderStates.remove_reminder), F.text)
+async def id_reminder_handler(message: types.Message, state: FSMContext):
+    try:
+        reminder_id = int(message.text)
+    except ValueError:
+        await message.answer("Введите число")
+        return
+
+    if reminder_id == -1:
+        await message.answer("Действие отменено")
+        await state.clear()
+        return
+
+    reminder_dp.remove_by_id_and_user_id(reminder_id, message.chat.id)
+    await state.clear()

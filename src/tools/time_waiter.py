@@ -43,7 +43,7 @@ class Waiter:
 
             if nearest_time[1] is not None:
                 if now >= nearest_time[1]:
-                    print(f"Waiter: {nearest_time}")
+                    print(f"We waited: {nearest_time[1]}")
                     parameter = cls.__callback_for_waiting[nearest_time[0]]
 
                     parameter[1](*parameter[2])
