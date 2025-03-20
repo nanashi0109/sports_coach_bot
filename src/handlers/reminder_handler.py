@@ -119,7 +119,7 @@ async def remove_reminder_handler(message: types.Message, state: FSMContext):
         await message.answer(NEED_REGISTRY_TEXT)
         return
 
-    await message.answer("Введите уникальный номер напоминание (-1 для отмены)")
+    await message.answer("Введите уникальный номер напоминания (-1 для отмены)")
     await state.set_state(ReminderStates.remove_reminder)
 
 
@@ -137,4 +137,5 @@ async def id_reminder_handler(message: types.Message, state: FSMContext):
         return
 
     reminder_dp.remove_by_id_and_user_id(reminder_id, message.chat.id)
+    await message.answer("Напоминание удалено")
     await state.clear()

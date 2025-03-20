@@ -12,7 +12,8 @@ HELP_MESSAGE = ("Список команд\n"
                 "/view_goals - просмотр всех текущих целей\n"
                 "/statistics - просмотр статистики и аналитики\n"
                 "/set_reminder - установить напоминаний\n"
-                "/view_reminders - просмотр напоминаний")
+                "/view_reminders - просмотр напоминаний\n"
+                "/remove_reminder - удалить напоминание")
 
 NEED_REGISTRY_TEXT = "Для начала нужно зарегистрироваться  с помощью команды /register"
 WORKOUT_REMINDER_TEXT = "У вас запланирована тренировка!"
